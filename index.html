@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SELLZVB // TERMINAL_V1</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body { background: #050505; color: #e5e5e5; font-family: 'JetBrains Mono', monospace; }
+        .grid-bg { background-image: radial-gradient(#1a1a1a 1px, transparent 1px); background-size: 20px 20px; }
+        .glitch { text-transform: uppercase; letter-spacing: 0.3em; font-weight: 800; font-style: italic; }
+        .terminal-box { border: 1px solid #222; background: rgba(10,10,10,0.8); }
+        .btn-black { background: white; color: black; font-weight: 900; transition: 0.2s; }
+        .btn-black:hover { background: #bbb; }
+        .out-of-stock { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
+    </style>
+</head>
+<body class="grid-bg min-h-screen">
+
+    <nav class="p-6 flex justify-between items-center max-w-7xl mx-auto border-b border-white/5">
+        <div class="text-xl font-black">SELLZVB</div>
+        <div class="flex gap-6 text-[10px] uppercase tracking-tighter">
+            <a href="#inventory" class="hover:text-white/50">Inventory</a>
+            <button onclick="togglePortal()" class="opacity-30 hover:opacity-100">[ ADMIN_ACCESS ]</button>
+        </div>
+    </nav>
+
+    <header class="py-24 px-6 text-center">
+        <p class="text-[10px] opacity-40 mb-2">SYS // SOURCING.TERMINAL.V1</p>
+        <h1 class="text-6xl md:text-8xl glitch mb-6">SELLZVB</h1>
+        <p class="text-sm opacity-60 max-w-lg mx-auto leading-relaxed">
+            Premium streetwear & archive pieces. Every drop verified. Every item certified. <br>
+            <span class="text-white">LIVE FEED: UPDATED REAL-TIME</span>
+        </p>
+        <div class="mt-10 flex flex-col md:flex-row gap-4 justify-center">
+            <a href="#inventory" class="btn-black px-10 py-4 text-xs">VIEW DROPS</a>
+            <button class="border border-white/20 px-10 py-4 text-xs hover:bg-white/5">REQUEST SOURCING</button>
+        </div>
+    </header>
+
+    <section id="inventory" class="max-w-7xl mx-auto p-6">
+        <div class="flex justify-between items-end mb-12">
+            <div>
+                <span class="text-xs opacity-40">[ 003 ] // LATEST_DROPS</span>
+                <h2 class="text-4xl font-bold italic uppercase">The Inventory</h2>
+            </div>
+            <div id="status-tag" class="text-[10px] text-green-500 animate-pulse">● SYSTEM_ONLINE</div>
+        </div>
+
+        <div id="product-grid" class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            </div>
+    </section>
+
+    <div id="employee-portal" class="fixed inset-0 bg-black/95 z-50 p-6 hidden overflow-y-auto">
+        <div class="max-w-2xl mx-auto">
+            <div class="flex justify-between items-center mb-12">
+                <h2 class="text-2xl font-bold">EMPLOYEE_PORTAL.EXE</h2>
+                <button onclick="togglePortal()" class="text-red-500">CLOSE [X]</button>
+            </div>
+            
+            <div class="terminal-box p-6 mb-12">
+                <h3 class="text-xs opacity-50 mb-4 uppercase">Add New Item</h3>
+                <div class="grid grid-cols-1 gap-4">
+                    <input type="text" id="p-name" placeholder="PRODUCT NAME" class="bg-transparent border border-white/10 p-3 text-xs">
+                    <input type="text" id="p-price" placeholder="PRICE (£)" class="bg-transparent border border-white/10 p-3 text-xs">
+                    <button onclick="addProduct()" class="btn-black py-3 text-xs">UPLOAD TO TERMINAL</button>
+                </div>
+            </div>
+
+            <div id="admin-product-list" class="space-y-4">
+                </div>
+        </div>
+    </div>
+
+    <script>
+        // INITIAL DATA (In a real app, this would be in Firebase/Supabase)
+        let products = [
+            { id: 1, name: "TRAPSTAR DECOY HOODIE", price: 120, inStock: true, discount: 0 },
+            { id: 2, name: "ARC'TERYX ALPHA SV", price: 450, inStock: false, discount: 10 }
+        ];
+
+        function renderProducts() {
+            const grid = document.getElementById('product-grid');
+            const adminList = document.getElementById('admin-product-list');
+            
+            grid.innerHTML = '';
+            adminList.innerHTML = '';
+
+            products.forEach(p => {
+                const finalPrice = p.price - (p.price * (p.discount/100));
+                
+                // Render Public Grid
+                grid.innerHTML += `
+                    <div class="terminal-box p-4 ${!p.inStock ? 'out-of-stock' : ''}">
+                        <div class="w-full aspect-square bg-neutral-900 mb-4 flex items-center justify-center">
+                             <i data-lucide="package" class="opacity-20 w-12 h-12"></i>
+                        </div>
+                        <div class="flex justify-between items-start">
+                            <div>
+                                <h4 class="font-bold text-sm">${p.name}</h4>
+                                <p class="text-xs opacity-40">${p.inStock ? 'AVAILABLE' : 'SOLD OUT'}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-sm font-bold">£${finalPrice}</p>
+                                ${p.discount > 0 ? `<p class="text-[10px] text-red-500 line-through">£${p.price}</p>` : ''}
+                            </div>
+                        </div>
+                        <button class="w-full mt-6 py-2 border border-white/10 text-[10px] hover:bg-white hover:text-black transition" ${!p.inStock ? 'disabled' : ''}>
+                            ${p.inStock ? 'INITIATE PURCHASE' : 'OUT OF STOCK'}
+                        </button>
+                    </div>
+                `;
+
+                // Render Admin Panel List
+                adminList.innerHTML += `
+                    <div class="flex justify-between items-center p-4 border border-white/5 bg-white/5">
+                        <span class="text-xs font-bold">${p.name}</span>
+                        <div class="flex gap-2">
+                            <button onclick="toggleStock(${p.id})" class="text-[10px] px-2 py-1 ${p.inStock ? 'bg-green-500/20 text-green-500' : 'bg-red-500/20 text-red-500'}">STOCK</button>
+                            <button onclick="applyDiscount(${p.id})" class="text-[10px] px-2 py-1 bg-white/10">DISCOUNT</button>
+                            <button onclick="removeProduct(${p.id})" class="text-[10px] px-2 py-1 text-red-500">DEL</button>
+                        </div>
+                    </div>
+                `;
+            });
+            lucide.createIcons();
+        }
+
+        // PORTAL LOGIC
+        function togglePortal() {
+            const pass = prompt("ENTER ACCESS KEY:");
+            if (pass === "ADMIN123") { // Change this to your password
+                document.getElementById('employee-portal').classList.toggle('hidden');
+            } else {
+                alert("ACCESS DENIED");
+            }
+        }
+
+        function addProduct() {
+            const name = document.getElementById('p-name').value;
+            const price = document.getElementById('p-price').value;
+            if(!name || !price) return;
+            
+            products.push({ id: Date.now(), name: name.toUpperCase(), price: parseInt(price), inStock: true, discount: 0 });
+            renderProducts();
+        }
+
+        function toggleStock(id) {
+            const p = products.find(p => p.id === id);
+            p.inStock = !p.inStock;
+            renderProducts();
+        }
+
+        function removeProduct(id) {
+            products = products.filter(p => p.id !== id);
+            renderProducts();
+        }
+
+        function applyDiscount(id) {
+            const p = products.find(p => p.id === id);
+            const amount = prompt("Enter discount percentage (e.g. 20):");
+            p.discount = parseInt(amount) || 0;
+            renderProducts();
+        }
+
+        renderProducts();
+    </script>
+</body>
+</html>
